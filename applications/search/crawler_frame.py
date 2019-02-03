@@ -66,7 +66,7 @@ def extract_next_links(rawDataObj):
     Suggested library: lxml
     '''
     outputLinks = []
-
+    # Check for error_message
     if rawDataObj.error_message:
         return outputLinks
 
@@ -78,7 +78,7 @@ def extract_links_from_html(html):
     Takes in text in html format and return a list of urls found
     in the text using the BeautifulSoup library and lxml parser.
     '''
-    
+
     links = []
     # loads the html into a BeautifulSoup object
     soup = BeautifulSoup(html, "lxml")
