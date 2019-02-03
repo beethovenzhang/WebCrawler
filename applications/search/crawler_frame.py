@@ -82,8 +82,8 @@ def extract_links_from_html(html):
     links = []
     # loads the html into a BeautifulSoup object
     soup = BeautifulSoup(html, "lxml")
-    
-    for link in soup.findAll('a'):
+    # Only find links starting with https://
+    for link in soup.findAll('a', attrs={'href': re.compile("^https://")}):
         links.append(link.get('href'))
 
     return links
