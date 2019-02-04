@@ -106,7 +106,7 @@ def is_valid(url):
     Robot rules and duplication rules are checked separately.
     This is a great place to filter out crawler traps.
     '''
-    link_lists =
+    
     parsed = urlparse(url)
     if re.search("(\d{4})[/-](\d{2})", parsed.path):
         return False
