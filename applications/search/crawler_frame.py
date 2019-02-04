@@ -70,10 +70,15 @@ def extract_next_links(rawDataObj):
     if rawDataObj.error_message:
         return outputLinks
 
-    outputLinks = extract_links_from_html(rawDataObj.content)
+    if rawDataObj.final_url:
+        current_url = rawDataObj.final_url
+    else:
+        current_url = rawDataObj.url
+
+    outputLinks = extract_links_from_html(rawDataObj.content, current_url)
     return outputLinks
 
-def extract_links_from_html(html):
+def extract_links_from_html(html, current_url):
     '''
     Takes in text in html format and return a list of urls found
     in the text using the BeautifulSoup library and lxml parser.
@@ -84,8 +89,14 @@ def extract_links_from_html(html):
     soup = BeautifulSoup(html, "lxml")
     # Only find links starting with https://
     for link in soup.findAll('a', attrs={'href': re.compile("^https://")}):
+        if link == current_url:
+            continue
         links.append(link.get('href'))
-
+    # Only find links starting with http://
+    for link in soup.findAll('a', attrs={'href': re.compile("^http://")}):
+        if link == current_url:
+            continue
+        links.append(link.get('href'))
     return links
 
 def is_valid(url):
@@ -95,7 +106,11 @@ def is_valid(url):
     Robot rules and duplication rules are checked separately.
     This is a great place to filter out crawler traps.
     '''
+    link_lists =
     parsed = urlparse(url)
+    if re.search("(\d{4})[/-](\d{2})", parsed.path):
+        return False
+
     if parsed.scheme not in set(["http", "https"]):
         return False
     try:
