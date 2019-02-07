@@ -17,7 +17,7 @@ subdomaincount = dict()
 max_url = "http://www.ics.uci.edu/"
 max_outlink = 0
 url_count = 0
-max_links = 4000
+max_links = 100
 
 @Producer(Yunfeiz1Puc1Link)
 @GetterSetter(OneYunfeiz1Puc1UnProcessedLink)
@@ -127,7 +127,7 @@ def is_valid(url):
     if re.search("(\d{4})[/-](\d{2})", parsed.path):
         return False
 
-    if re.search("calender", parsed.path):
+    if "calendar" in parsed.path:
         return False
 
     if parsed.scheme not in set(["http", "https"]):
@@ -157,10 +157,10 @@ def analytics(url, links):
         subdomaincount[subdomain] = subdomaincount.get(subdomain, 0) + 1
 
     current_outlink = len(links)
+    global max_outlink
+    global max_url
     if max_outlink < current_outlink:
-        global max_outlink
-        global max_url
-        max_url = current_url
+        max_url = url
         max_outlink = current_outlink
 
 def save_to_file():
