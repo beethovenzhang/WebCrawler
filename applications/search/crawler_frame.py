@@ -13,6 +13,11 @@ from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
+subdomaincount = dict()
+max_url = "http://www.ics.uci.edu/"
+max_outlink = 0
+url_count = 0
+max_links = 200
 
 @Producer(Yunfeiz1Puc1Link)
 @GetterSetter(OneYunfeiz1Puc1UnProcessedLink)
@@ -42,17 +47,23 @@ class CrawlerFrame(IApplication):
 
     def download_links(self, unprocessed_links):
         for link in unprocessed_links:
+            # Stop the crawler when it has crawled 3000 pages
+            global url_count
+            if url_count > max_links:
+                save_to_file()
+                self.shutdown()
+
             print "Got a link to download:", link.full_url
             downloaded = link.download()
+            url_count += 1
             links = extract_next_links(downloaded)
             for l in links:
                 if is_valid(l):
                     self.frame.add(Yunfeiz1Puc1Link(l))
 
     def shutdown(self):
-        print (
-            "Time time spent this session: ",
-            time() - self.starttime, " seconds.")
+        print ("Nice crawling!")
+        exit()
 
 def extract_next_links(rawDataObj):
     '''
@@ -82,6 +93,7 @@ def extract_links_from_html(html, current_url):
     '''
     Takes in text in html format and return a list of urls found
     in the text using the BeautifulSoup library and lxml parser.
+    Skip pags that contains urls leading to themselves.
     '''
 
     links = []
@@ -97,6 +109,15 @@ def extract_links_from_html(html, current_url):
         if link == current_url:
             continue
         links.append(link.get('href'))
+
+    # Find the page with the most outlinks
+    current_outlink = len(links)
+    global max_outlink
+    global max_url
+    if max_outlink < current_outlink:
+            max_url = current_url
+            max_outlink = current_outlink
+
     return links
 
 def is_valid(url):
@@ -106,9 +127,18 @@ def is_valid(url):
     Robot rules and duplication rules are checked separately.
     This is a great place to filter out crawler traps.
     '''
-    
+
+    # Count how many urls for each subdomains have been processed.
     parsed = urlparse(url)
+
+    subdomain = parsed.hostname.split('.')[0]
+    global subdomaincount
+    subdomaincount[subdomain] = subdomaincount.get(subdomain, 0) + 1
+
     if re.search("(\d{4})[/-](\d{2})", parsed.path):
+        return False
+
+    if re.search("calender", parsed.path):
         return False
 
     if parsed.scheme not in set(["http", "https"]):
@@ -124,3 +154,15 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         return False
+
+def save_to_file():
+    '''
+    Save analytics of the crawler to a text file with information of
+    how many urls have been processed from each subdomains and the
+    page with the most outputLinks
+    '''
+
+    with open('analytics.txt', 'w') as file:
+        for key, value in subdomaincount.iteritems():
+            file.write("{}: {}\n".format(key, value))
+        file.write("MOST OUT LINKS: " + max_url + "\nOUT LINKS: " + str(max_outlink) + "\n")
