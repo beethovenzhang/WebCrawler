@@ -8,8 +8,9 @@ from time import time
 from uuid import uuid4
 from urlparse import urlparse, parse_qs
 from uuid import uuid4
-# import BeautifulSoup4 for url parsing
+# import BeautifulSoup4 and urllib2 for url parsing
 from bs4 import BeautifulSoup
+import urllib2
 
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
@@ -22,7 +23,7 @@ max_outlink = 0
 # How many urls have been downloaded
 url_count = 0
 # Limitation of number of urls to download
-max_links = 100
+max_links = 3000
 
 @Producer(Yunfeiz1Puc1Link)
 @GetterSetter(OneYunfeiz1Puc1UnProcessedLink)
@@ -106,18 +107,28 @@ def extract_links_from_html(html, current_url):
     soup = BeautifulSoup(html, "lxml")
     # Only find links starting with https://
     for link in soup.findAll('a', attrs={'href': re.compile("^https://")}):
-        if link == current_url:
+        if is_same_url(link, current_url):
             continue
         links.append(link.get('href'))
     # Only find links starting with http://
     for link in soup.findAll('a', attrs={'href': re.compile("^http://")}):
-        if link == current_url:
+        if is_same_url(link, current_url):
             continue
         links.append(link.get('href'))
     # Keep track of crawer activity
     analytics(current_url, links)
 
     return links
+
+def is_same_url(link, current_url):
+    '''
+    Check if two urls point to the same webpage
+    '''
+
+    if link == current_url:
+        return True
+    if str(link) + '/' == str(current_url) or str(link) == str(current_url) + '/':
+        return True
 
 def is_valid(url):
     '''
@@ -156,6 +167,7 @@ def analytics(url, links):
     '''
 
     parsed = urlparse(url)
+    # Only count subdomains of ics.uci.edu
     if parsed.hostname and ".ics.uci.edu" in parsed.hostname:
         subdomain = parsed.hostname.split('.')[0]
         global subdomaincount
