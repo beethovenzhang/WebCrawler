@@ -13,10 +13,15 @@ from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
+# Keep track of how many urls have been processed for each different subdomains
 subdomaincount = dict()
+# The page with the most out links
 max_url = "http://www.ics.uci.edu/"
+# The max number of outlinks of pages processed
 max_outlink = 0
+# How many urls have been downloaded
 url_count = 0
+# Limitation of number of urls to download
 max_links = 100
 
 @Producer(Yunfeiz1Puc1Link)
@@ -47,7 +52,7 @@ class CrawlerFrame(IApplication):
 
     def download_links(self, unprocessed_links):
         for link in unprocessed_links:
-            # Stop the crawler when it has crawled 3000 pages
+            # Stop the crawler when it has crawled max_links pages
             global url_count
             if url_count > max_links:
                 save_to_file()
@@ -109,7 +114,7 @@ def extract_links_from_html(html, current_url):
         if link == current_url:
             continue
         links.append(link.get('href'))
-
+    # Keep track of crawer activity
     analytics(current_url, links)
 
     return links
@@ -171,6 +176,7 @@ def save_to_file():
     '''
 
     with open('analytics.txt', 'w') as file:
-        for key, value in subdomaincount.iteritems():
+        #for key, value in subdomaincount.iteritems():
+        for key, value in sorted(subdomaincount.iteritems(), key=lambda (k,v): (v,k), reverse = True):
             file.write("{}: {}\n".format(key, value))
         file.write("MOST OUT LINKS: " + max_url + "\nOUT LINKS: " + str(max_outlink) + "\n")
