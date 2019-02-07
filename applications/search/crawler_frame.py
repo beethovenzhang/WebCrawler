@@ -156,10 +156,12 @@ def analytics(url, links):
     '''
 
     parsed = urlparse(url)
-    if parsed.hostname:
+    if parsed.hostname and ".ics.uci.edu" in parsed.hostname:
         subdomain = parsed.hostname.split('.')[0]
         global subdomaincount
-        subdomaincount[subdomain] = subdomaincount.get(subdomain, 0) + 1
+        if subdomain != "www":
+            subdomaincount[subdomain] = subdomaincount.get(subdomain, 0) + 1
+
 
     current_outlink = len(links)
     global max_outlink
