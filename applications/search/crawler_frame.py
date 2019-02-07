@@ -17,7 +17,7 @@ subdomaincount = dict()
 max_url = "http://www.ics.uci.edu/"
 max_outlink = 0
 url_count = 0
-max_links = 200
+max_links = 4000
 
 @Producer(Yunfeiz1Puc1Link)
 @GetterSetter(OneYunfeiz1Puc1UnProcessedLink)
@@ -128,12 +128,14 @@ def is_valid(url):
     This is a great place to filter out crawler traps.
     '''
 
-    # Count how many urls for each subdomains have been processed.
     parsed = urlparse(url)
 
-    subdomain = parsed.hostname.split('.')[0]
-    global subdomaincount
-    subdomaincount[subdomain] = subdomaincount.get(subdomain, 0) + 1
+    # Count how many urls for each subdomains have been processed.
+    if parsed.hostname:
+        subdomain = parsed.hostname.split('.')[0]
+        global subdomaincount
+        subdomaincount[subdomain] = subdomaincount.get(subdomain, 0) + 1
+
 
     if re.search("(\d{4})[/-](\d{2})", parsed.path):
         return False
