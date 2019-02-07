@@ -110,13 +110,7 @@ def extract_links_from_html(html, current_url):
             continue
         links.append(link.get('href'))
 
-    # Find the page with the most outlinks
-    current_outlink = len(links)
-    global max_outlink
-    global max_url
-    if max_outlink < current_outlink:
-            max_url = current_url
-            max_outlink = current_outlink
+    analytics(current_url, links)
 
     return links
 
@@ -129,13 +123,6 @@ def is_valid(url):
     '''
 
     parsed = urlparse(url)
-
-    # Count how many urls for each subdomains have been processed.
-    if parsed.hostname:
-        subdomain = parsed.hostname.split('.')[0]
-        global subdomaincount
-        subdomaincount[subdomain] = subdomaincount.get(subdomain, 0) + 1
-
 
     if re.search("(\d{4})[/-](\d{2})", parsed.path):
         return False
@@ -156,6 +143,25 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         return False
+
+def analytics(url, links):
+    '''
+    Count how many urls for each subdomains have been processed
+    and find the page with the most outlinks
+    '''
+
+    parsed = urlparse(url)
+    if parsed.hostname:
+        subdomain = parsed.hostname.split('.')[0]
+        global subdomaincount
+        subdomaincount[subdomain] = subdomaincount.get(subdomain, 0) + 1
+
+    current_outlink = len(links)
+    if max_outlink < current_outlink:
+        global max_outlink
+        global max_url
+        max_url = current_url
+        max_outlink = current_outlink
 
 def save_to_file():
     '''
