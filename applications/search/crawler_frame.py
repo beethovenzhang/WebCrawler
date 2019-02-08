@@ -3,7 +3,7 @@ from datamodel.search.Yunfeiz1Puc1_datamodel import Yunfeiz1Puc1Link, OneYunfeiz
 from spacetime.client.IApplication import IApplication
 from spacetime.client.declarations import Producer, GetterSetter, Getter
 from lxml import html,etree
-import re, os
+import re, os, sys
 from time import time
 from uuid import uuid4
 from urlparse import urlparse, parse_qs
@@ -23,7 +23,7 @@ max_outlink = 0
 # How many urls have been downloaded
 url_count = 0
 # Limitation of number of urls to download
-max_links = 3000
+max_links = 1000
 
 @Producer(Yunfeiz1Puc1Link)
 @GetterSetter(OneYunfeiz1Puc1UnProcessedLink)
@@ -56,7 +56,6 @@ class CrawlerFrame(IApplication):
             # Stop the crawler when it has crawled max_links pages
             global url_count
             if url_count > max_links:
-                save_to_file()
                 self.shutdown()
 
             print "Got a link to download:", link.full_url
@@ -68,8 +67,10 @@ class CrawlerFrame(IApplication):
                     self.frame.add(Yunfeiz1Puc1Link(l))
 
     def shutdown(self):
-        print ("Nice crawling!")
-        exit()
+        save_to_file()
+        print("Nice crawling!")
+        sys.exit() # this always raises SystemExit
+
 
 def extract_next_links(rawDataObj):
     '''
@@ -125,7 +126,7 @@ def is_same_url(link, current_url):
     Check if two urls point to the same webpage
     '''
 
-    if link == current_url:
+    if str(link) == str(current_url):
         return True
     if str(link) + '/' == str(current_url) or str(link) == str(current_url) + '/':
         return True
